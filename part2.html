@@ -1,0 +1,675 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Language Testing Quiz Part 2</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+        }
+        .option:hover {
+            background-color: #e0f7fa;
+            cursor: pointer;
+        }
+        .correct {
+            background-color: #c8e6c9;
+        }
+        .incorrect {
+            background-color: #ffcdd2;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-2xl">
+        <h1 class="text-2xl font-bold mb-4 text-center">Language Testing Quiz Part 2</h1>
+        <div id="quiz-container">
+            <div id="question-number" class="text-lg font-semibold mb-2"></div>
+            <div id="question-text" class="mb-4"></div>
+            <div id="options" class="space-y-2"></div>
+            <div id="feedback" class="mt-4 hidden"></div>
+            <button id="next-button" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded hidden hover:bg-blue-600">Next Question</button>
+<button id="back-button" class="mt-2 bg-gray-500 text-white px-4 py-2 rounded hidden hover:bg-gray-600">Go Back</button>
+
+        </div>
+        <div id="completion-message" class="hidden text-center">
+            <h2 class="text-xl font-bold mb-4">Quiz Completed!</h2>
+<a href="part2.html" class="inline-block mt-4 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+    Go to Part 2 ➡️
+</a>
+            <p>You have answered all questions. Thank you for participating!</p>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                question: "Which of the following skills is not typically assessed through sentence or paragraph rearrangement tasks?",
+                options: ["A) Syntactic awareness", "B) Ability to maintain semantic coherence", "C) Organization at the paragraph level", "D) Ability to express original ideas"],
+                correct: "D",
+                explanation: "Rearrangement tasks assess a learner's ability to organize language elements logically and grammatically, testing syntax, cohesion, and discourse structure. However, they do not require learners to generate original content, so the ability to express original ideas is not assessed. (Hughes, p.81)"
+            },
+            {
+                question: "Which of the following statements about short-answer items is correct?",
+                options: ["A) They only require recognition, not production, so they do not assess language generation.", "B) While they test production, scoring is always entirely objective.", "C) They can assess grammar and meaning by requiring short, but productive, responses.", "D) They are typically used in multiple-choice test formats."],
+                correct: "C",
+                explanation: "Short-answer items require test-takers to produce a word, phrase, or brief sentence, testing grammatical accuracy and semantic understanding. They are productive and focus on both grammar and meaning. (Hughes, p.79)"
+            },
+            {
+                question: "Which of the following is an advantage of short answer questions over multiple choice questions?",
+                options: ["A) They allow test takers to choose from given options.", "B) They reduce the time needed to complete the response.", "C) They make it easier for teachers to score answers.", "D) They minimize the influence of guessing on test scores."],
+                correct: "D",
+                explanation: "Short answer questions require test-takers to produce responses, reducing the chance of guessing correctly compared to multiple-choice questions, where guessing can contribute more to scores. (Hughes, p.79)"
+            },
+            {
+                question: "Test techniques reveal behaviors that inform us about learners’ language abilities. Which of the following is a feature of effective test techniques?",
+                options: ["A) They should be challenging to score and analyze.", "B) They should require a lot of time and resources.", "C) They should elicit behavior as a valid and reliable indicator.", "D) They should mainly assess memorization and repetition."],
+                correct: "C",
+                explanation: "Effective test techniques should elicit behavior that reliably and validly indicates the language ability being tested, ensuring accurate assessment. (Hughes, p.75)"
+            },
+            {
+                question: "Which is the obvious weakness of Yes/No and True/False items?",
+                options: ["A) Suitable for checking recall of key facts, concepts, or definitions.", "B) Objective scoring, no ambiguity in correct answers.", "C) The test taker has a 50 % chance of choosing the correct response by chance alone.", "D) Helpful in identifying misconceptions or gaps in foundational knowledge."],
+                correct: "C",
+                explanation: "Yes/No and True/False items have a 50% chance of correct guessing, which reduces their reliability as an assessment tool. (Hughes, p.79)"
+            },
+            {
+                question: "Which of the following is not a common testing technique?",
+                options: ["A) Gap-filling items", "B) Portfolio assessment", "C) Short-answer items", "D) Multiple choice"],
+                correct: "B",
+                explanation: "Common test techniques include multiple-choice, yes/no, true/false, short-answer, and gap-filling items. Portfolio assessment, while valuable, is not a standard test technique but a collection of work over time. (Hughes, pp.75-82)"
+            },
+            {
+                question: "Why might multiple choice grammar test scores be misleading when evaluating a learner's overall language ability?",
+                options: ["A) They often include outdated grammatical structures.", "B) They fail to assess whether learners can use grammar in actual communication.", "C) They primarily test writing instead of speaking.", "D) They are usually too difficult for beginner learners."],
+                correct: "B",
+                explanation: "Multiple choice grammar tests assess recognition of correct forms but do not evaluate the ability to use grammar in real communication, such as speaking or writing. (Hughes, p.76)"
+            },
+            {
+                question: "What is a major challenge in accurately interpreting scores from multiple choice tests?",
+                options: ["A) Test items are often too easy for high-level learners.", "B) Test takers are not given enough time to consider each option.", "C) Most incorrect answers are assumed to reflect misunderstanding.", "D) The exact impact of guessing on individual scores cannot be determined."],
+                correct: "D",
+                explanation: "The impact of guessing on multiple choice test scores is uncertain, making it difficult to accurately interpret individual performance. (Hughes, p.76)"
+            },
+            {
+                question: "What is a key difference between multiple choice and short answer questions?",
+                options: ["A) Multiple choice questions focus more on listening and speaking skills, while short answer questions focus more on reading and writing skills.", "B) Short answer questions require students to write a brief and original response, while multiple choice questions provide answer options to choose from.", "C) Multiple choice questions almost always include pictures, while short answer questions do not.", "D) Short answer questions are more objective than multiple choice questions."],
+                correct: "B",
+                explanation: "Short answer questions require original, productive responses, whereas multiple choice questions offer pre-set options, making them more objective but less productive. (Hughes, pp.76-79)"
+            },
+            {
+                question: "Which one of the following options is inaccurate about true/false questions?",
+                options: ["A) They are useful for quickly assessing basic understanding of facts or concepts.", "B) True/false questions are often used to test knowledge of definitions, facts, or simple logic.", "C) True/false questions are usually avoided in formal tests where accuracy is critical.", "D) True/false questions are more reliable than multiple choice questions as they have fewer options to choose from."],
+                correct: "D",
+                explanation: "True/false questions are less reliable than multiple choice questions due to a 50% chance of guessing correctly, compared to a 20-25% chance with 4-5 option multiple choice questions. (Hughes, p.79)"
+            },
+            {
+                question: "Which of the following best describes the multiple-choice technique and explains why it is widely used in language testing?",
+                options: ["A) It allows for subjective interpretation and encourages creativity in student responses.", "B) It enables open-ended answers and is ideal for assessing speaking skills.", "C) It provides a fixed set of options, which allows for objective scoring and high reliability.", "D) It measures writing fluency by requiring learners to complete unfinished sentences freely."],
+                correct: "C",
+                explanation: "Multiple-choice items are widely used due to their objective scoring and high reliability, reducing examiner bias and ensuring consistency. (Hughes, p.76)"
+            },
+            {
+                question: "Which of the following test techniques is most effective for assessing a learner’s ability to manipulate grammatical structures?",
+                options: ["A) Transformation", "B) Matching", "C) Gap-filling", "D) Dictation"],
+                correct: "A",
+                explanation: "Transformation exercises, such as rewriting sentences (e.g., active to passive), are effective for testing grammatical competence by requiring learners to apply grammar rules. (Hughes, p.81)"
+            },
+            {
+                question: "Why is it recommended that a multiple choice item include at least four answer options?",
+                options: ["A) To extend the overall length of the text.", "B) To increase the difficulty by confusing test takers.", "C) To require more time for test item construction.", "D) To minimize the likelihood of correct answers resulting from random guessing."],
+                correct: "D",
+                explanation: "Including at least four options reduces the probability of guessing correctly, enhancing the reliability and validity of the test. (Hughes, p.77)"
+            },
+            {
+                question: "Which type of gap-filling item may cause issues with grammar or vocabulary testing?",
+                options: ["A) When used with spelling tests.", "B) When minor or subtle differences in meaning are tested.", "C) When there is only one answer.", "D) When contractions are not used."],
+                correct: "B",
+                explanation: "Gap-filling items testing subtle differences in meaning can be problematic, as they may allow multiple correct answers, reducing reliability. (Hughes, p.81)"
+            },
+            {
+                question: "In the short answer questions, which one is the possible disadvantageous item?",
+                options: ["A) The technique is not restricted by the need for distractors.", "B) Cheating is likely to be more difficult.", "C) The test taker has to be more productive in the language.", "D) Guessing contributes less to the test score."],
+                correct: "C",
+                explanation: "Requiring test-takers to produce language can be a disadvantage, as it may be challenging for lower-level learners and complicate scoring. (Hughes, p.79)"
+            },
+            {
+                question: "Which of the following gap-filling items does not meet the criteria for effective gap-filling tasks as discussed by Arthur Hughes?",
+                options: ["A) She asked me for money, ______, she knows I earn less than her.", "B) While they ______ television, there was a sudden bang outside.", "C) I wonder who that is. It ______ be the doctor.", "D) I think he ______ resign.", "E) He needs to ______ up if he wants to pass his next exam."],
+                correct: "B",
+                explanation: "Effective gap-filling items should have one clear correct answer. Item B allows multiple grammatical options (e.g., 'were watching', 'watched'), creating ambiguity and reducing reliability. (Hughes, pp.80-81)"
+            },
+            {
+                question: "What is a key principle in testing writing skills according to Hughes (2003)?",
+                options: ["A) Focus only on grammar accuracy", "B) Prioritize the use of literary devices", "C) Integrating real-life writing situations", "D) Avoid using any assessment criteria"],
+                correct: "C",
+                explanation: "Hughes emphasizes that writing tests should simulate authentic, real-world tasks to assess communicative ability effectively. (Hughes, p.93)"
+            },
+            {
+                question: "Which of the following best reflects Hughes’ (2003) view on how writing should be tested?",
+                options: ["A) Writing tasks should test isolated grammar structures", "B) Writing tasks should involve communicative and purposeful activities", "C) Writing tasks should test students’ knowledge of the topic", "D) Spelling and punctuation should be the sole focus of assessment"],
+                correct: "B",
+                explanation: "Writing assessments should involve meaningful, communicative tasks with a clear purpose and audience to measure writing as a productive skill. (Hughes, p.93)"
+            },
+            {
+                question: "A teacher wants to ensure that her writing test fairly assesses all aspects of her curriculum, including narrative writing, opinion writing, and descriptive writing. What type of validity is she aiming to achieve?",
+                options: ["a) Face validity", "b) Content validity", "c) Construct validity", "d) Predictive validity"],
+                correct: "b",
+                explanation: "Content validity ensures the test covers a representative sample of the curriculum, such as including diverse writing genres. (Hughes, pp.22, 84-85)"
+            },
+            {
+                question: "In the assessment of writing, which of the following is a key limitation of using holistic scoring over analytical scoring?",
+                options: ["a) Holistic scoring completely ignores grammar and vocabulary", "b) Holistic scoring requires multiple scorers to be effective", "c) Holistic scoring can obscure specific strengths and weaknesses in student performance", "d) Holistic scoring takes too long and is impractical for classroom use"],
+                correct: "c",
+                explanation: "Holistic scoring provides an overall impression but may not highlight specific strengths or weaknesses, unlike analytical scoring. (Hughes, pp.94-95)"
+            },
+            {
+                question: "What does Hughes recommend for making writing tasks authentic?",
+                options: ["A) Using formats from academic journals only", "B) Matching tasks to real communication situations", "C) Copying tasks from famous testing systems", "D) Focusing only on formal business contexts"],
+                correct: "B",
+                explanation: "Authentic writing tasks should reflect real-world communication needs, tailored to the candidates' context. (Hughes, p.93)"
+            },
+            {
+                question: "What solution does Hughes suggest to minimize reading skill impact in writing tests?",
+                options: ["A) Providing unlimited testing time for all candidates", "B) Using visual aids like diagrams instead of long texts", "C) Allowing candidates to speak their answers aloud", "D) Giving dictionaries to help with instructions"],
+                correct: "B",
+                explanation: "Using visual aids like diagrams reduces reliance on reading comprehension, ensuring the test measures writing ability. (Hughes, p.93)"
+            },
+            {
+                question: "Which of the elements below isn’t included in testing a student’s writing skills?",
+                options: ["A) Capitalization", "B) Style conventions", "C) Monologue presentation", "D) Misuse of quotation marks"],
+                correct: "C",
+                explanation: "Monologue presentation is relevant to oral skills, not writing. Writing tests focus on elements like capitalization, style, and punctuation. (Hughes, p.108)"
+            },
+            {
+                question: "Which of the following would be expected of a teacher while ensuring valid and reliable scoring?",
+                options: ["A) Ensure very short samples", "B) Set as few tasks as possible", "C) Create scoring scales based on teacher’s opinion on students", "D) Ensure long enough samples"],
+                correct: "D",
+                explanation: "Long samples provide more data for reliable scoring, ensuring valid assessment of writing skills. (Hughes, p.94)"
+            },
+            {
+                question: "What is the primary goal when testing writing skills?",
+                options: ["A) To evaluate the student’s imagination", "B) To check the student’s general knowledge of the topic", "C) To measure their speed and handwriting", "D) To assess how effectively students use language in writing"],
+                correct: "D",
+                explanation: "The primary goal is to assess effective language use in writing, not imagination, knowledge, or handwriting. (Hughes, p.90)"
+            },
+            {
+                question: "Güneş teacher has a large number of student essays to grade. She has a limited amount of time for this assessment. She wants to get a general impression of each student’s writing performance without spending too much time on detailed feedback. Which scoring method would be most appropriate in this situation?",
+                options: ["A) Holistic Scoring", "B) Portfolio Assessment", "C) Analytic Scoring", "D) Task-Specific Scoring"],
+                correct: "A",
+                explanation: "Holistic scoring is faster than analytic scoring, providing an overall impression suitable for time-constrained grading. (Hughes, p.103)"
+            },
+            {
+                question: "When designing writing tasks for a test, what should be the primary consideration regarding content validity?",
+                options: ["A) Requiring candidates to perform only a single, specialized writing task.", "B) Including a representative sample of all relevant potential writing tasks.", "C) Focusing solely on tasks that are easy to score quickly.", "D) Allowing candidates to choose any topic they desire to write about."],
+                correct: "B",
+                explanation: "Content validity requires a representative sample of writing tasks to cover the curriculum comprehensively. (Hughes, pp.84-85)"
+            },
+            {
+                question: "What is a potential drawback of giving candidates a choice of tasks in a writing test?",
+                options: ["A) It makes the test more authentic for the candidates.", "B) It can lead to less directly comparable performances between different candidates.", "C) It increases the overall reliability of the test scores.", "D) It encourages more creative and imaginative responses"],
+                correct: "B",
+                explanation: "Giving task choices reduces comparability between candidates, complicating fair assessment. (Hughes, p.94)"
+            },
+            {
+                question: "Which of the following is a key reason for preferring direct testing of writing ability in language tests?",
+                options: ["A) Indirect methods fail to accurately measure writing ability.", "B) It is quicker and more cost-effective.", "C) It eliminates the need for scoring scales.", "D) Students prefer indirect testing formats."],
+                correct: "A",
+                explanation: "Direct testing is preferred because indirect methods, like grammar tests, do not accurately measure writing ability. (Hughes, p.83)"
+            },
+            {
+                question: "Why is it recommended to include several different writing tasks in a test?",
+                options: ["A) To reduce the length of each individual task", "B) To make scoring easier and faster", "C) To ensure a higher score for weaker students", "D) To improve validity and reliability through multiple samples"],
+                correct: "D",
+                explanation: "Multiple tasks provide fresh starts, enhancing reliability and validity by sampling a range of writing skills. (Hughes, p.90)"
+            },
+            {
+                question: "Which of the below is not a way to make testing writing more effective mentioned by Hughes when writing skills of students are tested?",
+                options: ["A) Restricting candidates", "B) Setting as many tasks as possible", "C) Giving the students a choice of tasks", "D) Applying holistic scoring"],
+                correct: "C",
+                explanation: "Hughes advises against giving task choices to ensure comparable performances, unlike restricting candidates or setting multiple tasks. (Hughes, p.94)"
+            },
+            {
+                question: "What is the main disadvantage of the analytic method?",
+                options: ["A) The analytic method requires much more time when compared to the holistic method.", "B) It prevents the development of subskills in individuals unevenly.", "C) Scorers are forced to consider aspects of performance that they may otherwise ignore.", "D) The fact that the scorer has to give several scores will tend to make the scoring more reliable."],
+                correct: "A",
+                explanation: "The analytic method is more time-consuming than holistic scoring due to the need to assess multiple criteria. (Hughes, p.103)"
+            },
+            {
+                question: "Which of the following best describes the main challenge in testing oral ability?",
+                options: ["A) Finding native speakers to assess oral performance", "B) Ensuring that candidates memorize the correct responses", "C) Creating tasks that reflect real-world speaking situations and allow valid and reliable scoring", "D) Using written exams to evaluate spoken language skills"],
+                correct: "C",
+                explanation: "The main challenge is designing tasks that mirror real-life speaking situations while ensuring valid and reliable scoring. (Hughes, p.113)"
+            },
+            {
+                question: "How long should an oral test be to provide reliable and comprehensive information about a candidate's speaking ability?",
+                options: ["A) Less than 5 minutes", "B) Between 5 and 10 minutes", "C) About 15 to 30 minutes", "D) Over 45 minutes"],
+                correct: "C",
+                explanation: "A 15-30 minute test is sufficient to assess most speaking abilities reliably, while shorter tests are less reliable. (Hughes, p.124)"
+            },
+            {
+                question: "Which of the following is a drawback of using a single interviewer for all oral tests?",
+                options: ["A) It ensures consistent scoring.", "B) It may lead to bias or inconsistent interaction.", "C) It eliminates test anxiety.", "D) It reduces testing time significantly."],
+                correct: "B",
+                explanation: "A single interviewer may introduce bias or variability, affecting fairness. Multiple raters or training can mitigate this. (Hughes, 2003)"
+            },
+            {
+                question: "What is one of the main benefits of using paired oral testing?",
+                options: ["A) It increases natural interaction between test-takers.", "B) It removes the need for any scoring rubric.", "C) It allows candidates to avoid interacting with the examiner.", "D) It guarantees equal speaking time for both candidates."],
+                correct: "A",
+                explanation: "Paired oral testing simulates natural conversation, enhancing authenticity, though dominance by one speaker may need monitoring. (Hughes, 2003)"
+            },
+            {
+                question: "Which of the following responses best demonstrates flexibility?",
+                options: ["A) “That question seems unrelated to the topic. Could we move on?”", "B) “I’ve already talked about that, so I’ll just repeat my previous point.”", "C) “That’s an interesting angle. I haven’t considered it before, but I’d say it might depend on...”", "D) “I’m not really sure, but I can list some related vocabulary if that helps.”"],
+                correct: "C",
+                explanation: "Flexibility involves adapting to spontaneous, topic-independent questions, as shown in option C by engaging with a new angle. (Hughes, p.127)"
+            },
+            {
+                question: "What is the disadvantage of testing oral ability by grouping the candidates?",
+                options: ["A) It may enhance the performance of the candidates as they are equal.", "B) Candidates can feel more confident as they are not talking with a superior interviewer.", "C) Time required for assessment is reduced as more than one candidate is tested at the same time.", "D) A candidate may overshadow the others as they try to show what they are capable of."],
+                correct: "D",
+                explanation: "Group testing may allow a dominant candidate to overshadow others, limiting their opportunity to demonstrate ability. (Hughes, p.121)"
+            },
+            {
+                question: "What is a key requirement for accuracy in oral communication assessment?",
+                options: ["A) The speaker must avoid using any grammatical structures from their first language (L1).", "B) Pronunciations must be completely native-like.", "C) Communication must be intelligible even with some L1 influence or grammatical errors.", "D) The speaker must use perfect grammar at all times."],
+                correct: "C",
+                explanation: "Accuracy requires intelligible communication, even with some L1 influence or errors, rather than perfect grammar or pronunciation. (Hughes, p.127)"
+            },
+            {
+                question: "What does flexibility in oral communication involve?",
+                options: ["A) Memorizing and repeating dialogues from coursebooks.", "B) Using simple vocabulary to ensure clarity.", "C) Adapting to changes in direction or topic during a conversation.", "D) Avoiding any pauses or hesitations while speaking."],
+                correct: "C",
+                explanation: "Flexibility involves adapting to conversational shifts and responding appropriately to new topics or directions. (Hughes, p.127)"
+            },
+            {
+                question: "What does ‘SIZE’ criterion mean in the oral testing?",
+                options: ["A) The number of grammar rules the candidate uses.", "B) The clarity of pronunciation in long sentences.", "C) The ability to produce detailed and extended responses.", "D) The physical size of the test room."],
+                correct: "C",
+                explanation: "The ‘SIZE’ criterion refers to a candidate’s ability to produce lengthy and complex responses with minimal assistance. (Hughes, 2003)"
+            },
+            {
+                question: "Why is a second tester used in oral interviews?",
+                options: ["A) To conduct the evaluation process.", "B) To help focus on the candidate’s performance and gather reliable judgments.", "C) To ask more technical grammar questions.", "D) To make the oral interviews more difficult."],
+                correct: "B",
+                explanation: "A second tester enhances reliability by focusing on performance and contributing to consistent evaluations. (Hughes, 2003)"
+            },
+            {
+                question: "What is not appropriate to do while testing oral skills?",
+                options: ["a) Offering candidates different topics to talk about.", "b) Reminding candidates that they are being assessed frequently.", "c) Keeping the testing as long as possible.", "d) Offering candidates familiar topics to talk about."],
+                correct: "b",
+                explanation: "Frequently reminding candidates of assessment can increase anxiety and disrupt natural conversation, reducing performance quality. (Hughes, p.125)"
+            },
+            {
+                question: "Which of the following is not one of the practices done before an interview?",
+                options: ["a) Trainees are given background on the interview.", "b) Structure of the interview is described.", "c) Video of a typical interview is shown.", "d) Written dialogues are given to the trainees."],
+                correct: "d",
+                explanation: "Providing written dialogues before interviews is not recommended, as it may limit spontaneous production, which interviews aim to assess. (Hughes, p.126)"
+            },
+            {
+                question: "Which of the following is a key advantage of the 'semi-direct' testing format (e.g., audio- or video-recorded prompts) over traditional oral interviews?",
+                options: ["a) It allows candidates to negotiate meaning with the examiner.", "b) It provides consistent interaction between candidates and interlocutors.", "c) It reduces examiner influence, promoting standardization across test-takers.", "d) It encourages spontaneous discussion between candidates."],
+                correct: "c",
+                explanation: "Semi-direct testing ensures uniformity in elicitation, reducing examiner bias and increasing reliability. (Hughes, p.122)"
+            },
+            {
+                question: "Why should yes/no questions be avoided in oral interviews?",
+                options: ["a) They don’t show the student’s speaking ability well.", "b) They are hard to understand.", "c) They take too long to answer.", "d) They are not used in everyday conversation."],
+                correct: "a",
+                explanation: "Yes/no questions elicit short responses, providing limited insight into a student’s speaking ability. (Hughes, p.119)"
+            },
+            {
+                question: "Which of the following oral test tasks is most suitable for assessing a learner's ability to negotiate meaning and interact spontaneously?",
+                options: ["A) Reading a short passage aloud", "B) Describing a picture in detail", "C) Answering pre-set personal interview questions", "D) Performing a role-play with another candidate"],
+                correct: "D",
+                explanation: "Role-plays and paired activities effectively assess interactive skills like negotiation and turn-taking, reflecting real-world communication. (Hughes, p.117)"
+            },
+            {
+                question: "According to Hughes, what is one of the main challenges in ensuring the reliability of oral tests?",
+                options: ["A) Oral responses cannot be recorded for later evaluation", "B) Candidates often refuse to speak in test situations", "C) Scoring is highly subjective and influenced by rater variability", "D) Oral tasks always require advanced grammar knowledge"],
+                correct: "C",
+                explanation: "Oral tests are prone to rater variability, which can affect reliability. Clear criteria and training help mitigate this. (Hughes, p.113)"
+            },
+            {
+                question: "Why should reading test items avoid requiring candidates to write long answers?",
+                options: ["A) It makes the test too hard for learners", "B) Writing tasks are more fun and less stressful", "C) Writing may interfere with measuring actual reading ability", "D) Candidates prefer reading tasks over writing ones"],
+                correct: "C",
+                explanation: "Long writing tasks can obscure reading comprehension due to writing difficulties, affecting the test’s ability to measure reading skills. (Hughes, p.143)"
+            },
+            {
+                question: "Why is selecting a wide range of texts important when designing a reading test?",
+                options: ["A) To improve students’ spelling and grammar", "B) To give teachers more material to grade", "C) To enhance content validity and avoid over-representation of certain text types", "D) To make the test longer and more difficult"],
+                correct: "C",
+                explanation: "A wide range of texts ensures content validity by representing diverse reading tasks, reducing bias from over-relying on one text type. (Hughes, p.142)"
+            },
+            {
+                question: "In testing inferential reading skills, what distinction does Hughes draw between propositional and pragmatic inferences?",
+                options: ["A) Propositional inferences rely on imagery while pragmatic inferences do not.", "B) Propositional inferences are grammar-based; pragmatic inferences are vocabulary-based.", "C) Propositional inferences rely solely on the text while pragmatic inferences require external knowledge.", "D) Propositional inferences use background knowledge; pragmatic inferences use personal belief."],
+                correct: "C",
+                explanation: "Propositional inferences are based solely on text information, while pragmatic inferences require combining text with external knowledge. (Hughes, p.139)"
+            },
+            {
+                question: "What practical scoring guidance does Hughes give to ensure reading test reliability?",
+                options: ["A) Use a strict rubric for grammar and spelling.", "B) Prioritize fluent writing in scoring.", "C) Give partial credit for long answers.", "D) Focus solely on the correctness of content comprehension."],
+                correct: "D",
+                explanation: "Scoring should focus on comprehension, not penalizing grammar or spelling errors if the response demonstrates understanding. (Hughes, p.155)"
+            },
+            {
+                question: "Which of the following best describes the purpose of using skimming tasks in reading tests?",
+                options: ["A) To assess the reader’s ability to understand the meaning of individual words in isolation", "B) To measure the reader’s grammatical knowledge in complex sentences", "C) To evaluate the reader’s ability to identify the main idea or gist of the text quickly", "D) To test the reader’s accuracy in translating the entire passage into L1"],
+                correct: "C",
+                explanation: "Skimming tasks assess the ability to quickly identify the main idea or gist of a text, a key expeditious reading skill. (Hughes, p.143)"
+            },
+            {
+                question: "According to Hughes, which of the following practices would most reduce the validity of a reading test?",
+                options: ["A) Including texts that are culturally familiar to the test-takers", "B) Selecting passages that are appropriate for the test-takers’ proficiency level", "C) Using texts where the understanding depends heavily on prior background knowledge", "D) Designing items that require understanding of cohesive devices in the text"],
+                correct: "C",
+                explanation: "Relying on prior background knowledge undermines validity, as it tests knowledge rather than reading ability. (Hughes, p.143)"
+            },
+            {
+                question: "Jamie was given a list of references at the end of an article. His task was to quickly locate the name of a particular author mentioned in the bibliography without reading the entire list. He glanced down the page and found the name within seconds. Which expeditious reading skill is Jamie demonstrating in this task?",
+                options: ["A) Skimming", "B) Search reading", "C) Scanning", "D) Careful reading"],
+                correct: "C",
+                explanation: "Scanning involves quickly finding specific information, such as a name, without reading the entire text, as Jamie did. (Hughes, p.138)"
+            },
+            {
+                question: "Which type of inference requires the reader to combine information found within the text with their own knowledge from outside the text to fully understand the meaning?",
+                options: ["A) Propositional inferences", "B) Pragmatic inferences", "C) Literal inferences", "D) Structural inferences"],
+                correct: "B",
+                explanation: "Pragmatic inferences require combining text information with external knowledge to infer meaning. (Hughes, p.139)"
+            },
+            {
+                question: "Which of the following is NOT typically considered an expeditious reading operation?",
+                options: ["A) Obtaining main ideas quickly and efficiently", "B) Deciding the relevance of a text to one's needs", "C) Interpreting complex sentences", "D) Establishing the structure of a text quickly"],
+                correct: "C",
+                explanation: "Interpreting complex sentences is a careful reading operation, not an expeditious one like skimming or scanning. (Hughes, 2003)"
+            },
+            {
+                question: "When testing reading ability, what is a potential disadvantage of requiring candidates to write their answers in the language of the text?",
+                options: ["A) It might make the test less reliable due to random variation.", "B) It can lead to difficulties in scoring due to a lack of unique correct responses.", "C) It may prevent candidates from demonstrating successful reading if they have writing difficulties.", "D) It limits the ability to test a wide range of reading skills."],
+                correct: "C",
+                explanation: "Writing difficulties can interfere with demonstrating reading comprehension, reducing the test’s effectiveness. (Hughes, 2003)"
+            },
+            {
+                question: "Why might the use of short-answer items in reading tests sometimes fail to accurately reflect a learner’s comprehension?",
+                options: ["A) Learners often write irrelevant information instead of answering directly.", "B) The scoring process becomes invalid due to students copying answers from others.", "C) A student may select or remember a correct answer without actually understanding the text.", "D) They are more suitable for testing listening skills than reading comprehension."],
+                correct: "C",
+                explanation: "Short-answer items may allow students to retrieve answers without true comprehension, affecting accuracy. (Hughes, p.148)"
+            },
+            {
+                question: "What is a major psychometric limitation of gap-filling tasks when used for reading assessment in standardized tests?",
+                options: ["A) They fail to evaluate scanning and skimming skills.", "B) The open-ended nature of responses introduces subjectivity and scoring inconsistencies.", "C) They are ineffective at distinguishing between literal and inferential comprehension.", "D) Students tend to focus on vocabulary only rather than understanding the context."],
+                correct: "B",
+                explanation: "Open-ended gap-filling tasks can introduce scoring subjectivity, reducing reliability in standardized tests. (Hughes, p.148)"
+            },
+            {
+                question: "Which of the following best describes a key principle when designing a reading comprehension test that aims to measure a learner’s actual reading ability?",
+                options: ["A) The test should include as many vocabulary questions as possible to assess word knowledge.", "B) The reading passages should be unfamiliar and culturally distant to test adaptability.", "C) The test should include tasks that mirror real-world reading purposes, such as scanning for information or understanding main ideas.", "D) The test should focus on grammatical accuracy in written responses to ensure language precision."],
+                correct: "C",
+                explanation: "Reading tests should reflect authentic reading purposes, like scanning or understanding main ideas, to assess real-world skills. (Hughes, 2003)"
+            },
+            {
+                question: "In reading assessment, various sub-skills can be targeted. Which of the following tasks is most appropriate for evaluating a learner’s ability to distinguish between main ideas and supporting details in a text?",
+                options: ["A) Asking the learner to translate the passage into their first language.", "B) Providing multiple statements and asking the learner to identify which express the main idea.", "C) Requiring the learner to memorize and reproduce the text word for word.", "D) Asking factual questions that require locating names and numbers within the text."],
+                correct: "B",
+                explanation: "Identifying main ideas through multiple-choice or matching tasks effectively assesses comprehension of text structure. (Hughes, 2003)"
+            },
+            {
+                question: "Why is it important to space test items far apart in extended listening tasks?",
+                options: ["A) To prevent candidates from missing subsequent items due to earlier mistakes", "B) To make the test seem longer and more comprehensive", "C) To allow candidates time to review their answers", "D) To make it easier to include background music"],
+                correct: "A",
+                explanation: "Spacing items prevents candidates from missing later questions due to earlier errors, ensuring fair assessment. (Hughes, p.164)"
+            },
+            {
+                question: "What is one main reason that partial dictation is preferred over full dictation in listening tests?",
+                options: ["A) It requires more advanced grammar skills", "B) It is easier to score reliably", "C) It focuses on speaking skills rather than listening", "D) It allows candidates to rewrite the full passage"],
+                correct: "B",
+                explanation: "Partial dictation is easier to score reliably than full dictation, as it provides some text to reduce ambiguity. (Hughes, p.168)"
+            },
+            {
+                question: "Which of the following best explains why listening tests present unique challenges compared to reading tests?",
+                options: ["A) Listening tests are easier to grade objectively.", "B) Listeners can review audio content multiple times, unlike readers.", "C) Reading tests require more complex equipment than listening tests.", "D) Spoken language is transient, making it harder to process than written text."],
+                correct: "D",
+                explanation: "The transient nature of spoken language makes listening tests challenging, as listeners cannot revisit audio easily. (Hughes, p.160)"
+            },
+            {
+                question: "Which of the following is considered an informational listening operation according to Hughes's classification?",
+                options: ["A) Obtaining factual information.", "B) Understanding expressions of agreement.", "C) Recognizing indications of failure to understand.", "D) Recognizing speaker’s desire for listener feedback."],
+                correct: "A",
+                explanation: "Obtaining factual information is an informational listening operation, unlike interactional operations like agreement or feedback recognition. (Hughes, p.161)"
+            },
+            {
+                question: "What is one major drawback of using poor-quality recordings in listening tests?",
+                options: ["A) They make the test too easy for advanced learners", "B) They increase the realism of the task", "C) They help test candidates' concentration skills", "D) They can reduce the validity of the test"],
+                correct: "D",
+                explanation: "Poor-quality recordings introduce irrelevant difficulties, reducing the test’s validity by testing audio clarity rather than listening skills. (Hughes, p.163)"
+            },
+            {
+                question: "In the context of partial dictation, what is the most critical requirement for a candidate’s response to be accepted as correct?",
+                options: ["A) The response must show that the candidate heard and recognized the missing word", "B) The word must be spelled and punctuated exactly as in the original script", "C) The candidate may insert a phonetically plausible word even if it’s incorrect.", "D) The word must fit the general meaning of the sentence, even if it wasn’t heard clearly."],
+                correct: "A",
+                explanation: "Correct responses in partial dictation must demonstrate auditory recognition of the missing word, not just plausible guesses. (Hughes, p.169)"
+            },
+            {
+                question: "According to Hughes, what is one of the main challenges in constructing listening tests?",
+                options: ["A) The abundance of visual cues in listening materials.", "B) The transient nature of spoken language.", "C) The uniformity of accents and dialects in spoken texts.", "D) The ease with which listeners can control playback in real-life situations."],
+                correct: "B",
+                explanation: "The fleeting nature of spoken language poses a key challenge, as listeners cannot easily revisit audio during tests. (Hughes, p.160)"
+            },
+            {
+                question: "According to Hughes, what is the most important factor when selecting samples of speech for listening tests?",
+                options: ["A) Choosing only formal, scripted speech to ensure clarity.", "B) Selecting speech only from native speakers with a single accent.", "C) Using very short recordings to avoid listener fatigue.", "D) Selecting speech samples that represent the range of language learners will encounter in real life."],
+                correct: "D",
+                explanation: "Speech samples should reflect real-life language variety, including different accents and contexts, to assess authentic listening skills. (Hughes, 2003)"
+            },
+            {
+                question: "According to the book, which of the following is not a recommended technique for writing items in an extended listening test?",
+                options: ["A) Keeping items sufficiently far apart in the passage to avoid candidates missing subsequent questions.", "B) Warning candidates about upcoming information by using key words in both the item and the passage.", "C) Using long and complex alternatives in multiple-choice questions to thoroughly challenge candidates.", "D) Providing candidates with sufficient time at the outset to familiarize themselves with the items, unless note-taking is specifically being tested."],
+                correct: "C",
+                explanation: "Long and complex alternatives in multiple-choice questions are not recommended, as they can confuse candidates. Short, simple alternatives are preferred. (Hughes, 2003)"
+            },
+            {
+                question: "According to the text, which of the following is not a reason why listening might be tested separately from speaking?",
+                options: ["A) There are real-world situations where no speaking is required, such as listening to radio announcements.", "B) Testing listening can have a beneficial 'backwash effect' on the development of oral skills, even if oral ability testing is impractical.", "C) Listening is often tested for diagnostic purposes to identify specific areas of difficulty.", "D) Listening is a productive skill that always requires simultaneous speaking for true assessment."],
+                correct: "D",
+                explanation: "Listening is a receptive skill, not productive, and can be tested separately, as it occurs in contexts without speaking. (Hughes, 2003)"
+            },
+            {
+                question: "What is a critical design principle for sequencing test items in a listening passage?",
+                options: ["A) Place the hardest questions at the end", "B) Ask two or more questions per sentence for efficiency", "C) Avoid placing items too closely together in the audio", "D) Repeat the same question type to build familiarity"],
+                correct: "C",
+                explanation: "Avoiding closely placed items prevents candidates from missing questions due to earlier errors, ensuring fair assessment. (Hughes, p.164)"
+            },
+            {
+                question: "In scoring a listening comprehension test, which of the following is the most appropriate approach?",
+                options: ["A) Deduct points for grammatical and spelling mistakes, even if the meaning is clear.", "B) Award points only if the response is both grammatically correct and correctly spelled.", "C) Focus on whether the meaning of the response is clear, without penalizing grammar or spelling errors.", "D) Ignore all student responses that contain any errors, regardless of meaning."],
+                correct: "C",
+                explanation: "Scoring should focus on comprehension, not penalizing grammar or spelling if the response shows understanding. (Hughes, p.170)"
+            },
+            {
+                question: "According to Hughes, what is one reason for testing listening separately from speaking?",
+                options: ["A) Listening and speaking cannot be separated in any test", "B) Listening is easier to test and grade than speaking", "C) Listening occurs in contexts where no speaking is required", "D) Speaking skills are not important in language testing"],
+                correct: "C",
+                explanation: "Listening can be tested separately, as it occurs in real-world scenarios like lectures or announcements without speaking. (Hughes, p.160)"
+            },
+            {
+                question: "What is essential for ensuring the reliability of a listening test recording?",
+                options: ["A) Using multiple dialects to enhance authenticity", "B) Allowing students to read the transcript in advance", "C) Clearly recording the voice and ensuring intelligibility", "D) Including pauses for student note-taking"],
+                correct: "C",
+                explanation: "Clear, intelligible recordings are crucial to ensure the test measures listening skills, not the ability to interpret poor audio. (Hughes, p.161)"
+            },
+            {
+                question: "What is one important feature of a good listening test, according to Hughes (2003)?",
+                options: ["a) It includes only written texts", "b) It uses clear and natural spoken language", "c) It avoids any interaction in the tasks", "d) It focuses mainly on reading skills"],
+                correct: "b",
+                explanation: "Clear and natural spoken language is essential for assessing authentic listening skills in a good listening test. (Hughes, p.160)"
+            },
+            {
+                question: "Which of the following task types is commonly used in listening tests to check understanding?",
+                options: ["a) Matching spoken questions with written responses", "b) Writing a full essay after listening", "c) Solving grammar exercises", "d) Drawing a picture from memory"],
+                correct: "a",
+                explanation: "Matching spoken questions with written responses effectively measures comprehension without requiring excessive writing skills. (Hughes, pp.162-164)"
+            },
+            {
+                question: "Which of the following grammar testing techniques asks learners to rewrite a sentence using different words while preserving the original meaning?",
+                options: ["A) Gap filling", "B) Paraphrase", "C) Completion", "D) Transformation"],
+                correct: "B",
+                explanation: "Paraphrase items require rewriting a sentence to maintain meaning, often testing specific grammatical structures. (Hughes, p.176)"
+            },
+            {
+                question: "According to Hughes, which of the following is a recommended guideline when creating distractors for a vocabulary multiple-choice question?",
+                options: ["A) Use obscure or very rare words to confuse students", "B) Make distractors longer and more technical than the correct answer", "C) Ensure all distractors are similar in length and plausible in meaning", "D) Include grammatical errors in distractors to test attention"],
+                correct: "C",
+                explanation: "Distractors should be plausible and similar in length to the correct answer to ensure fair and effective testing. (Hughes, pp.180-181)"
+            },
+            {
+                question: "According to Hughes (2003), what is the main advantage of using gap-filling items to test grammar compared to open-ended questions?",
+                options: ["A) They allow for more creative answers from students", "B) They can restrict responses to a single correct answer when context is carefully controlled", "C) They are easier to grade subjectively", "D) They don't require any preparation time"],
+                correct: "B",
+                explanation: "Well-designed gap-filling items with controlled context ensure a single correct answer, unlike open-ended questions with variable responses. (Hughes, 2003)"
+            },
+            {
+                question: "Why does Hughes (2003) recommend using word frequency lists when creating vocabulary tests?",
+                options: ["A) They help ensure the test includes the most useful and common words", "B) They make the test more difficult for advanced learners", "C) They eliminate the need for context in test items", "D) They allow teachers to ignore syllabus vocabulary"],
+                correct: "A",
+                explanation: "Word frequency lists ensure tests prioritize high-use, practical words, aligning with real-world language needs. (Hughes, 2003)"
+            },
+            {
+                question: "Which of the following test formats is most commonly used to assess grammar knowledge?",
+                options: ["A) Essay writing", "B) Oral interview", "C) Picture description", "D) Multiple-choice"],
+                correct: "D",
+                explanation: "Multiple-choice is commonly used for grammar tests due to its control over content and objective scoring. (Hughes, p.143)"
+            },
+            {
+                question: "Which vocabulary item format helps test learners' understanding of word meaning in context?",
+                options: ["A) Word-definition matching", "B) Cloze tests with options", "C) Isolated word lists", "D) Phonemic transcription"],
+                correct: "B",
+                explanation: "Cloze tests provide context, essential for assessing word meaning and use in realistic scenarios. (Hughes, p.117)"
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let selectedAnswer = null;
+
+        const questionNumber = document.getElementById('question-number');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options');
+        const feedbackContainer = document.getElementById('feedback');
+        const nextButton = document.getElementById('next-button');
+        const quizContainer = document.getElementById('quiz-container');
+        const completionMessage = document.getElementById('completion-message');
+
+        function loadQuestion() {
+            const question = questions[currentQuestionIndex];
+            questionNumber.textContent = `Question ${currentQuestionIndex + 41} of ${questions.length + 40}`;
+            questionText.textContent = question.question;
+            optionsContainer.innerHTML = '';
+            feedbackContainer.classList.add('hidden');
+            nextButton.classList.add('hidden');
+            selectedAnswer = null;
+
+            question.options.forEach(option => {
+                const button = document.createElement('button');
+                button.textContent = option;
+                button.className = 'option block w-full text-left p-3 border rounded hover:bg-blue-50';
+                button.addEventListener('click', () => selectAnswer(option));
+                optionsContainer.appendChild(button);
+            });
+
+backButton.classList.toggle('hidden', currentQuestionIndex === 0);
+
+        }
+
+        function selectAnswer(option) {
+    if (selectedAnswer) return; // Prevent multiple selections
+    selectedAnswer = option;
+    const question = questions[currentQuestionIndex];
+    const isCorrect = option.charAt(0).toLowerCase() === question.correct.toLowerCase();
+    feedbackContainer.innerHTML = `
+        <p class="font-semibold ${isCorrect ? 'text-green-600' : 'text-red-600'}">
+            ${isCorrect ? 'Correct!' : 'Incorrect.'}
+        </p>
+        <p>${question.explanation}</p>
+    `;
+    feedbackContainer.classList.remove('hidden');
+    nextButton.classList.remove('hidden');
+
+    // Highlight selected and correct options
+    const buttons = optionsContainer.getElementsByTagName('button');
+    for (let button of buttons) {
+        const isButtonCorrect = button.textContent.trim().toLowerCase().startsWith(question.correct.toLowerCase());
+        if (button.textContent === option) {
+            button.classList.add(isCorrect ? 'correct' : 'incorrect');
+        }
+        if (!isCorrect && isButtonCorrect) {
+            button.classList.add('correct');
+        }
+        button.disabled = true; // Disable all buttons after selection
+    }
+}
+
+
+        nextButton.addEventListener('click', () => {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                loadQuestion();
+            } else {
+                quizContainer.classList.add('hidden');
+                completionMessage.classList.remove('hidden');
+            }
+        });
+const backButton = document.getElementById('back-button');
+
+backButton.addEventListener('click', () => {
+    if (currentQuestionIndex > 0) {
+        currentQuestionIndex--;
+        loadQuestion();
+    }
+});
+
+
+        loadQuestion();
+    </script>
+</body>
+</html>

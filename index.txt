@@ -1,0 +1,640 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Language Testing Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+        }
+        .option:hover {
+            background-color: #e0f7fa;
+            cursor: pointer;
+        }
+        .correct {
+            background-color: #c8e6c9;
+        }
+        .incorrect {
+            background-color: #ffcdd2;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-2xl">
+        <h1 class="text-2xl font-bold mb-4 text-center">Language Testing Quiz</h1>
+	<div class="text-center mb-4">
+    <a href="part2.html" class="inline-block bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+        Skip to Part 2 ➡️
+    </a>
+</div>
+
+        <div id="quiz-container">
+            <div id="question-number" class="text-lg font-semibold mb-2"></div>
+            <div id="question-text" class="mb-4"></div>
+            <div id="options" class="space-y-2"></div>
+            <div id="feedback" class="mt-4 hidden"></div>
+            <button id="next-button" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded hidden hover:bg-blue-600">Next Question</button>
+<button id="next-button" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded hidden hover:bg-blue-600">Next Question</button>
+<button id="back-button" class="mt-2 bg-gray-500 text-white px-4 py-2 rounded hidden hover:bg-gray-600">Go Back</button>
+
+
+        <div id="completion-message" class="hidden text-center">
+    <h2 class="text-xl font-bold mb-4">Quiz Completed!</h2>
+    <p>You have answered all questions. Thank you for participating!</p>
+    <a href="part2.html" class="inline-block mt-4 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+        Go to Part 2 ➡️
+    </a>
+</div>
+
+
+    <script>
+        const questions = [
+            {
+                question: "It is the language teacher’s responsibility to give the students a writing test that aligns with the field of study that they pursue. Which of the following kinds of validity does the statement above refer to?",
+                options: ["A) Criterion validity", "B) Content validity", "C) Face validity", "D) Construct validity"],
+                correct: "B",
+                explanation: "A test is said to have content validity if its content constitutes a representative sample of the language skills, structures, etc. with which it is meant to be concerned. (Hughes, p.26)"
+            },
+            {
+                question: "Before the beginning of the academic year, English teachers may give a test to their pupils to identify their language proficiency levels. This test type is called ----.",
+                options: ["A) diagnostic test", "B) placement test", "C) achievement test", "D) progress test"],
+                correct: "A",
+                explanation: "Diagnostic tests are used to identify learners’ strengths and weaknesses and provide the teacher ideas about what learning needs to take place. (Hughes, p.15)"
+            },
+            {
+                question: "A test created to measure whether a student can use English effectively in a university setting, regardless of the course they studied, is an example of a ----.",
+                options: ["A) diagnostic test", "B) final achievement test", "C) progress achievement test", "D) proficiency test"],
+                correct: "D",
+                explanation: "Proficiency tests assess language ability independent of any specific course or training, and often for real-world or academic settings."
+            },
+            {
+                question: "A test that is based strictly on the grammar and vocabulary found in the coursebook may fail to show whether students achieved broader course objectives. What is the main disadvantage of this kind of test approach?",
+                options: ["a) It is too difficult for beginners", "b) It promotes integrative learning", "c) It may not align with course aims", "d) It avoids cultural bias"],
+                correct: "c",
+                explanation: "When tests only reflect the textbook or syllabus content, they might overlook key course goals, such as communicative competence or academic language use."
+            },
+            {
+                question: "Which of the following statements best describes the difference between objective and subjective testing?",
+                options: ["A) Objective tests are easier to write than subjective tests.", "B) Objective tests require judgment from the scorer, while subjective tests do not.", "C) Objective tests have unambiguous answers and do not require scorer judgment, while subjective tests involve scorer judgment to some degree.", "D) Subjective tests are always unreliable and should be avoided."],
+                correct: "C",
+                explanation: "The statement in option C is the most accurate because it correctly captures the fundamental difference between objective and subjective testing. Objective tests, like multiple-choice or true/false exams, have clear, definitive answers that don't require the scorer's judgment, ensuring consistency in grading. Subjective tests, such as essays or open-ended questions, involve interpretation and evaluation by the scorer, which introduces some level of judgment. (Hughes p.22)"
+            },
+            {
+                question: "Which of the following best highlights the difference between placement tests and diagnostic tests?",
+                options: ["A) Placement tests identify gaps in a learner’s grammar knowledge; diagnostic tests assign students to appropriate course levels.", "B) Diagnostic tests are used to sort students into levels, while placement tests provide detailed feedback on performance.", "C) Diagnostic tests help identify a learner’s strengths and weaknesses to guide further learning; placement tests help assign learners to appropriate stages in a teaching program.", "D) Both placement and diagnostic tests are primarily used to assign grades at the end of a course."],
+                correct: "C",
+                explanation: "Diagnostic tests aim to identify strengths and weaknesses and help guide future learning. Placement tests aim to assign students to appropriate levels or stages in a teaching program. C accurately captures this distinction. (Hughes p.15)"
+            },
+            {
+                question: "A class finishes the unit “Present Perfect Tense” on their textbooks. Their teacher prepares a test to determine the students’ understanding of the unit. This test is an example of:",
+                options: ["a) Diagnostic Test", "b) Proficiency Test", "c) Achievement Test", "d) Placement Test"],
+                correct: "c",
+                explanation: "Achievement tests are used to test the students’ levels of understanding in a particular topic or unit after it’s been taught. (Hughes, p.13)"
+            },
+            {
+                question: "A teacher is about to start the “Relative Clauses” unit, but cannot be sure if the students are already familiar with it. So she gives the students a test to help her understand the proficiency of the students, and adjust the level and depth of the unit beforehand. This test falls under which category?",
+                options: ["a) Proficiency Test", "b) Diagnostic Test", "c) Placement Test", "d) Achievement Test"],
+                correct: "b",
+                explanation: "Diagnostic tests are tests that are used to understand the students’ strengths and weaknesses before the teaching takes place. The teacher here can use a Diagnostic Test to learn about the students and adjust the unit according to the results. (Hughes, p.15)"
+            },
+            {
+                question: "Which of the following best describes a placement test?",
+                options: ["A) A test used to evaluate how much a student has learned in a specific course.", "B) A test designed to determine a learner’s general language ability for certification purposes.", "C) A test used to identify a student's language strengths and weaknesses.", "D) A test used to assign students to an appropriate level in a language program."],
+                correct: "D",
+                explanation: "A placement test is designed to determine a learner’s current level of language proficiency so that they can be placed in the most suitable class or level. It is not tied to a specific syllabus or course; instead, it helps ensure learners are grouped with others of similar ability for effective instruction."
+            },
+            {
+                question: "Which of the following statements best distinguishes between direct and indirect testing?",
+                options: ["A) Direct testing focuses on grammar rules, while indirect testing evaluates speaking ability.", "B) Direct testing requires integration of multiple skills, while indirect testing only uses discrete-point tasks.", "C) Direct testing assesses actual language performance, whereas indirect testing assesses underlying language knowledge.", "D) Direct testing uses multiple-choice questions, while indirect testing uses essays and interviews."],
+                correct: "C",
+                explanation: "Direct testing involves tasks that mirror real-life language use, such as writing an essay or participating in a conversation, so it directly measures the ability to perform a language skill. Indirect testing, on the other hand, uses tools like grammar exercises or multiple-choice questions to assess knowledge that supports language use but doesn't require the skill itself to be demonstrated."
+            },
+            {
+                question: "Which of the following best describes a diagnostic test as explained in Hughes' Testing for Language Teachers?",
+                options: ["A) A test used to determine a student's progress at the end of a course or unit.", "B) A test designed to predict a learner's future performance or success in a language program.", "C) A test given to check the effectiveness of a teaching method or course material.", "D) A test used to identify specific areas of weakness or difficulty a learner is experiencing.", "E) A test that is administered to rank learners according to their overall proficiency."],
+                correct: "D",
+                explanation: "In Testing for Language Teachers, Arthur Hughes categorizes language tests into several types based on their purpose. A diagnostic test is specifically designed to identify learners' strengths and weaknesses in particular language areas such as grammar, vocabulary, pronunciation, or listening comprehension. The main aim of this type of test is not to assign grades or measure general proficiency but rather to diagnose learning problems so that teachers can provide targeted instruction or remedial work."
+            },
+            {
+                question: "…… are intended to provide information about students to match them with the stage or part their abilities are most appropriate for.",
+                options: ["a. Proficiency tests", "b. Diagnostic tests", "c. Placement tests", "d. Achievement tests"],
+                correct: "c",
+                explanation: "Placement tests, as their name suggests, are intended to provide information that will help to place the students at the stage (or in the part) of the teaching programme most appropriate to their abilities. (Hughes, p.16)"
+            },
+            {
+                question: "Which of the following statements about objective testing and subjective testing is not correct?",
+                options: ["a. The distinction between them is about the methods of scoring.", "b. There are different levels of subjectivity in testing.", "c. The less subjective the scoring, the greater agreement there will be between two different scorers.", "d. It is not possible to obtain reliable subjective scoring."],
+                correct: "d",
+                explanation: "The distinction here is between methods of scoring, and nothing else… There are different degrees of subjectivity in testing… In general, the less subjective the scoring, the greater agreement there will be between two different scorers… However, there are ways of obtaining reliable subjective scoring, even of compositions. (Hughes, 22)"
+            },
+            {
+                question: "Which of the following statements correctly reflects the main difference between proficiency and achievement tests?",
+                options: ["A) Proficiency tests are based on course materials, while achievement tests assess general language ability.", "B) Achievement tests aim to determine readiness for university-level study, regardless of course content.", "C) Proficiency tests evaluate overall language ability, while achievement tests are based on specific instructional objectives.", "D) Achievement tests are administered internationally, while proficiency tests are only for local use."],
+                correct: "C",
+                explanation: "Proficiency tests measure general language competence, often for external purposes, and are not linked to a specific course. In contrast, achievement tests assess whether learners have met the specific learning objectives of a course or curriculum. Option C captures this distinction accurately."
+            },
+            {
+                question: "Which of the following scenarios is an example of direct testing?",
+                options: ["A) A student is asked to identify grammatical errors in sentences as a way to assess writing skills.", "B) A learner completes a cloze test (fill-in-the-blanks) to demonstrate reading comprehension.", "C) A candidate gives an oral presentation on a prepared topic to assess speaking skills.", "D) A test-taker chooses the correct synonyms from a list to evaluate vocabulary knowledge."],
+                correct: "C",
+                explanation: "Option C involves direct testing because the student is actively using the language skill (speaking) that is being assessed. The other options involve indirect tasks that assess sub-skills or knowledge assumed to contribute to the main language skill, but not the skill itself in action."
+            },
+            {
+                question: "Consider a test that evaluates a learner’s knowledge of grammar rules, vocabulary, and reading comprehension to determine what specific areas need improvement. This test is given at the beginning of a term and is not used for grading purposes. What kind of test is being described?",
+                options: ["A) Proficiency test", "B) Diagnostic test", "C) Norm-referenced test", "D) Summative test"],
+                correct: "B",
+                explanation: "Diagnostic tests are specifically used to identify a learner’s strengths and weaknesses in particular areas. This helps teachers plan targeted instruction and support. They are not used for placement or certification. (Hughes, pp. 15-16)"
+            },
+            {
+                question: "Which of the following statements best reflects the difference between a proficiency test and an achievement test in the context of second language assessment?",
+                options: ["A) A proficiency test evaluates what a learner has been taught in a specific course, while an achievement test measures overall language ability regardless of course content.", "B) A proficiency test is administered during instruction, while an achievement test is always given at the beginning of a course.", "C) A proficiency test measures general language ability independent of specific instruction, while an achievement test evaluates mastery of specific course objectives.", "D) Both proficiency and achievement tests are used for diagnostic purposes only."],
+                correct: "C",
+                explanation: "Proficiency tests, such as TOEFL or IELTS, assess overall ability in a language, not tied to a particular syllabus. Achievement tests, on the other hand, measure what students have learned in relation to a specific course or unit. (Hughes, pp. 11-13)"
+            },
+            {
+                question: "What is a primary reason why a test with high content validity might still fail to accurately measure the intended construct?",
+                options: ["A) Because it does not include enough test items.", "B) Due to scoring methods that are invalid or unreliable.", "C) If the test-takers do not find the test interesting.", "D) Because the test does not look like it measures the skill that is intended to be tested."],
+                correct: "B",
+                explanation: "As explained in, even if a test has high content validity, meaning it includes appropriate and representative items, it can still fail to measure the construct accurately if the scoring process is invalid. For example, if spelling errors or grammar are overemphasized when measuring reading ability, this can invalidate the score. emphasizes that valid scoring is essential for the test's overall validity. (Hughes, 2003)"
+            },
+            {
+                question: "In the context of content validity, why is it recommended to develop test specifications before creating the actual test items?",
+                options: ["A) To ensure the test is as difficult as possible.", "B) To guarantee that the test measures all relevant content areas fairly and comprehensively.", "C) To make the test more appealing to test-takers.", "D) To eliminate the need for pilot testing."],
+                correct: "B",
+                explanation: "According to Hughes (2003), developing detailed test specifications before creating items ensures that the test content aligns with what it is intended to measure, covering all relevant areas fairly and preventing content bias. This process supports the validity of the test."
+            },
+            {
+                question: "Which of the following statements best reflects the concept of construct validity in language testing?",
+                options: ["a) It ensures the format of the test is clear and understandable for test-takers.", "b) It is the degree to which a test appears valid to the examinees and stakeholders.", "c) It evaluates how well a test corresponds to theoretical concepts or traits it aims to measure.", "d) It involves predicting a learner’s future performance in real-world contexts."],
+                correct: "c",
+                explanation: "As stated in Hughes (2003), construct validity is achieved when a test successfully measures the theoretical construct it claims to assess—for instance, “communicative competence” or “reading comprehension.” Without clear alignment with the underlying construct, the test results may be misleading or invalid in terms of what they claim to reflect."
+            },
+            {
+                question: "Which of the following scenarios best illustrates a problem with content validity?",
+                options: ["a) A speaking test that includes only reading aloud from a text", "b) A grammar test that gives different scores depending on who marks it", "c) A reading test that looks confusing to students", "d) A writing test that produces consistent results each time it is given"],
+                correct: "a",
+                explanation: "Content validity refers to the extent to which a test’s content is representative of the domain it's supposed to measure. If a speaking test only involves reading aloud, it omits critical aspects of speaking such as fluency, coherence, and interaction, and therefore lacks content validity (Hughes, 2003)."
+            },
+            {
+                question: "Which of the following best defines validity in language testing?",
+                options: ["a) The consistency of test results over time", "b) The ability of a test to measure what it is intended to measure", "c) The degree to which test takers enjoy the test", "d) The ease with which a test can be marked"],
+                correct: "b",
+                explanation: "Validity refers to the accuracy with which a test measures the skill or knowledge it claims to assess (Hughes, 2003, p. 26)."
+            },
+            {
+                question: "Which of the following situations would most seriously weaken the construct validity of a language test?",
+                options: ["a) Giving students too much time to complete the test", "b) Allowing students to choose from multiple essay topics", "c) Using tasks that test general knowledge instead of language ability", "d) Marking all test sections by the same rater"],
+                correct: "c",
+                explanation: "Construct validity is concerned with whether the test actually measures the intended construct — in this case, language ability. If tasks rely heavily on general knowledge rather than language use, the test does not validly assess language skills (Hughes, 2003, p. 26–27)."
+            },
+            {
+                question: "Which of the following best describes content validity?",
+                options: ["a) How easy the test is for students to complete.", "b) Whether the test results predict future performance.", "c) How representative the test content is of the skills or knowledge it’s supposed to measure.", "d) Whether the test matches students’ expectations."],
+                correct: "c",
+                explanation: "From the point of view of content validity, this will depend on how many of the functions are tested in the component, and how representative they are of the complete set of functions included in the objectives (Hughes, 2002, p.27-28). So, content validity depends on how well the test represents the skills included in the instructional objectives."
+            },
+            {
+                question: "What is the first recommended step for developing a teacher-made test?",
+                options: ["a) Write explicit test specifications", "b) Start testing as soon as possible", "c) Choose questions from textbooks", "d) Ask students for feedback"],
+                correct: "a",
+                explanation: "When a teacher is going to create a test, the first thing they should do is not just grab questions from a book or rush into testing. Instead, they should write clear and detailed specifications. According to Hughes (2003), firstly the teacher needs to write explicit specifications for the test which take account of all that is known about the constructs that are to be measured. This means they need to decide exactly what they are going to test, and what skills or knowledge the students should show."
+            },
+            {
+                question: "Which situation best shows that a language test has good criterion-related validity?",
+                options: ["A) The test scores match closely with students’ class participation grades.", "B) Students who perform well on this test also perform well on an established international English exam.", "C) Students say the test seems fair and interesting.", "D) The test covers a wide range of vocabulary and grammar topics."],
+                correct: "B",
+                explanation: "Criterion-related validity means the test results match an external measure of the same ability. If students score similarly on both the test and a well-known, valid English test, it shows that the test is likely measuring the same skill reliably. (Hughes, pp. 27-28)"
+            },
+            {
+                question: "Which of the following best ensures validity in scoring a speaking test?",
+                options: ["A) Letting students choose the topic they want.", "B) Using the same teacher to score all students.", "C) Applying a detailed and clear scoring rubric that matches test goals.", "D) Giving all students the same score to be fair."],
+                correct: "C",
+                explanation: "A clear scoring rubric helps ensure that scores are based on specific, relevant criteria—not just a scorer’s opinion. This improves fairness and makes sure the scores truly represent the student’s performance. (Hughes, p. 33)"
+            },
+            {
+                question: "What is the main purpose of a placement test in language teaching?",
+                options: ["a) To measure students’ progress at the end of a course", "b) To identify students’ strengths and weaknesses before starting a course", "c) To motivate students during the learning process", "d) To diagnose learning disabilities"],
+                correct: "b",
+                explanation: "The correct answer is b, “To identify students’ strengths and weaknesses before starting a course,” because according to Hughes, placement tests are specifically used to allocate students into appropriate groups or classes based on their abilities and knowledge (Hughes, p. 16)."
+            },
+            {
+                question: "What does Arthur Hughes primarily mean by “content validity” in language testing?",
+                options: ["a) The test consistently produces similar results", "b) The test measures exactly what it claims to measure", "c) The test adequately covers the domain of content it’s intended to assess", "d) The test results correlate well with external measures"],
+                correct: "c",
+                explanation: "The correct answer is c, “The test adequately covers the domain of content it’s intended to assess,” because Hughes explains that content validity involves ensuring that a test thoroughly represents the content and skills intended to be assessed (Hughes, p. 26)."
+            },
+            {
+                question: "Which of the following statements about 'content validity' is incorrect?",
+                options: ["A) A test is said to have content validity if its content constitutes a representative sample of the language skills, structures, etc. with which it is meant to be concerned.", "B) For a grammar test to have content validity, it must include a proper sample of the relevant structures.", "C) When determining the content of a test, test specifications do not need to be made at a very early stage.", "D) The greater a test's content validity, the more likely it is to be an accurate measure of what it is supposed to measure."],
+                correct: "C",
+                explanation: "The correct answer is C. As stated in the text, 'In order to judge whether or not a test has content validity, we need a specification of the skills or structures, etc. that it is meant to cover. Such a specification should be made at a very early stage in test construction.' Therefore, the statement that specifications do not need to be made at a very early stage is incorrect. Options A, B, and D are all consistent with the information provided in the text."
+            },
+            {
+                question: "Which of the following statements about 'criterion-related validity' is correct?",
+                options: ["A) Criterion-related validity concerns the degree to which results on the test agree with those provided by some independent and highly dependable assessment of the candidate's ability.", "B) For concurrent validity, the test and the criterion should ideally be administered at different times.", "C) Predictive validity concerns how well a test can predict candidates' past performance.", "D) A correlation coefficient of 0 indicates perfect agreement between two sets of scores."],
+                correct: "A",
+                explanation: "The correct answer is A. Criterion-related validity is about how well test results match independent, reliable assessments of a candidate's ability. Options B and C are incorrect because concurrent validity requires the test and criterion to be administered at roughly the same time, and predictive validity focuses on predicting future performance. Option D is also incorrect, as a correlation coefficient of 0 indicates a total lack of agreement, not perfect agreement."
+            },
+            {
+                question: "Validity is achieved when…",
+                options: ["A) the test is easy to mark quickly.", "B) the test gives the same score no matter how many times it is taken.", "C) the test measures what it is supposed to measure.", "D) the test is difficult for most students."],
+                correct: "C",
+                explanation: "Validity in testing refers to whether a test actually measures what it claims to measure. Not only should a speaking test measure grammar knowledge, but also speaking ability. This aligns with the concept of construct validity (Hughes, p.26)."
+            },
+            {
+                question: "Mr. Ersoy is preparing a grammar test for his EFL class. He includes only present simple and present continuous questions, both of which have been recently covered in class, and uses multiple-choice items taken from the textbook to make grading easier. After the test, some students say it didn’t reflect everything they had studied. What should Mr. Ersoy do to improve his test?",
+                options: ["A) Continue focusing on recent material to match class coverage.", "B) Only use questions that are easy-to-grade to save time.", "C) Limit topics further to reduce student stress.", "D) Include grammar topics from the full course syllabus."],
+                correct: "D",
+                explanation: "Mr. Ersoy should select items that reflect the full range of grammar taught to ensure the test is valid, and fairly represents student learning (Hughes, p. 26)."
+            },
+            {
+                question: "Which of the following best describes scorer reliability?",
+                options: ["A) The degree to which test results remain consistent over time", "B) The extent to which test items reflect a wide range of language skills", "C) The consistency of scores given by different raters or by the same rater at different times", "D) The degree to which a test measures what it is intended to measure"],
+                correct: "C",
+                explanation: "Scorer reliability means an agreement between different scorers or within the same scorer across time, especially in subjective assessments like speaking or writing."
+            },
+            {
+                question: "If a teacher allows students to choose freely how they respond to writing tasks (such as selecting their own topics, formats, or lengths) how could this affect the reliability of the test?",
+                options: ["A) It may reduce reliability because scoring becomes inconsistent across different types of responses.", "B) It increases reliability by encouraging creativity and authentic language use.", "C) It has no effect on reliability as long as students understand the task.", "D) It improves test fairness by giving students more autonomy."],
+                correct: "A",
+                explanation: "According to Hughes, giving too much freedom to students can cause scoring less consistent and reduce reliability."
+            },
+            {
+                question: "What is the main goal of using a split-half method in reliability testing?",
+                options: ["a) To check if students answer every question", "b) To compare results from different testing institutions", "c) To estimate reliability using only one administration", "d) To adjust for difficulty differences between items"],
+                correct: "c",
+                explanation: "The most common methods of obtaining the necessary two sets of scores involve only one administration of one test. Such methods provide us with a coefficient of internal-consistency. The most basic of these is the split half method. (Hughes, p.40)"
+            },
+            {
+                question: "What is the main drawback of allowing too much freedom in writing tasks, according to Hughes?",
+                options: ["a) It makes the test too easy for high-level students", "b) It reduces opportunities for creativity", "c) It negatively affects the test’s reliability", "d) It makes the test longer than necessary"],
+                correct: "c",
+                explanation: "Such a procedure is likely to have a depressing effect on the reliability of the test. The more freedom that is given, the greater is likely to be the difference between the performance actually elicited and the performance that would have been elicited had the test been taken, say, a day later. (Hughes, p. 45-46)"
+            },
+            {
+                question: "What is a recommended way to make scoring more objective?",
+                options: ["a) Using open-ended questions only", "b) Employing multiple-choice items", "c) Allowing candidate self-scoring", "d) Ignoring scorer training"],
+                correct: "b",
+                explanation: "Employing multiple-choice items because Hughes mentions that using multiple-choice items can make scoring more objective (p.46)."
+            },
+            {
+                question: "What does reliability refer to in the context of test scores?",
+                options: ["a) The difficulty of the test", "b) The speed of scoring", "c) The number of test items", "d) The consistency of scores across different occasions"],
+                correct: "d",
+                explanation: "The consistency of scores across different occasions because Hughes mentions that reliability is about the consistency of scores when a test is taken on different occasions (p.38)."
+            },
+            {
+                question: "Which of the following actions is most likely to increase the reliability of a language test?",
+                options: ["A) Allowing candidates to choose their own essay topics", "B) Including only one item to assess each language skill", "C) Providing clear and explicit instructions", "D) Using items that do not discriminate between students"],
+                correct: "C",
+                explanation: "This is because “test writers should not rely on the students’ powers of telepathy to elicit the desired behaviour,” and ambiguity in instructions can lead to misinterpretation, reducing test reliability (p. 47)."
+            },
+            {
+                question: "A teacher wants to design a reliable language test. Which of the following practices reduces the reliability of the test?",
+                options: ["A) Designing open-ended tasks with subjective scoring criteria", "B) Using a large number of items that sample various language skills", "C) Ensuring all candidates receive the same instructions and conditions", "D) Timing the test consistently for all participants"],
+                correct: "A",
+                explanation: "This weakens reliability because scoring may vary depending on the rater’s interpretation. As noted on page 46, reliability suffers when there’s too much room for scorer judgment or inconsistency."
+            },
+            {
+                question: "In productive skill assessments such as speaking or writing, variation in scores between raters is a common issue. Which of the following is the most effective strategy to improve scoring consistency and ensure higher inter-rater reliability?",
+                options: ["a) Reducing the number of tasks to limit scoring time", "b) Using holistic scoring and trusting the rater’s overall impression", "c) Implementing analytic rubrics along with comprehensive rater training", "d) Allowing students to choose task topics for increased motivation"],
+                correct: "c",
+                explanation: "Productive skill tasks are inherently subjective, making inter-rater reliability a major concern. Hughes (2003, p. 41) emphasizes that 'the use of detailed scoring criteria, along with training of scorers, can greatly increase reliability.' Analytic rubrics divide assessment into components (e.g., fluency, grammar, content), which reduces ambiguity in scoring and helps ensure consistency between different raters."
+            },
+            {
+                question: "A teacher gives the same language proficiency test to a group of students twice within a short period, ensuring that no instruction or major learning took place between the two sessions. The results from the two testings show considerable variation. Which of the following best explains this outcome in terms of test reliability?",
+                options: ["a) The test lacks construct validity", "b) The test has low test-retest reliability", "c) The test items are too difficult for the students’ level", "d) The scoring lacks transparency and consistency"],
+                correct: "b",
+                explanation: "This situation demonstrates an issue with test-retest reliability, which refers to the consistency of test scores over time under similar conditions. As Hughes (2003, p. 44) states, “if a test is perfectly reliable, the scores gained by a group of candidates on the two occasions should be the same.” The lack of stability between the two sets of results suggests that the test does not reliably measure student performance over time."
+            },
+            {
+                question: "What does the term ‘reliability’ mainly refer to in language testing?",
+                options: ["A) The degree to which test scores are affected by personal opinions", "B) The extent to which a test measures what it is supposed to measure", "C) The consistency of test scores across different occasions or scorers", "D) The difficulty level of a language test"],
+                correct: "C",
+                explanation: "Reliability in language testing mainly refers to how consistent the test results are. Even if the same test is given to the same students under similar conditions on another day, scores shouldn’t vary too much. Hughes mentions that we can never expect scores to be exactly the same, but if they are very similar, then the test is considered reliable (Hughes, p.36-37)."
+            },
+            {
+                question: "Which of the following situations would most likely indicate low reliability in a language test?",
+                options: ["A) Two scorers give nearly identical scores to the same writing sample", "B) A candidate receives very different scores on the same test taken two days apart", "C) The test includes a variety of question types", "D) The test instructions are clearly written and easy to follow"],
+                correct: "B",
+                explanation: "Such a big difference between scores suggests that the test is not reliable. Hughes explains that even under the same conditions, we shouldn’t expect identical scores, but they should be quite similar if the test is reliable. When there is too much variation, it means that the test isn’t consistent and can’t be fully trusted (Hughes, p.36-38)."
+            },
+            {
+                question: "Which factor is most likely to improve the reliability of a language test?",
+                options: ["A) Reducing the number of test items", "B) Allowing students to choose their own topics", "C) Increasing the number of test items", "D) Using only open-ended questions"],
+                correct: "C",
+                explanation: "Hughes (2003) notes that longer tests generally yield higher reliability because they provide a more comprehensive sample of the construct being measured. A larger number of well-constructed items reduces the impact of random errors."
+            },
+            {
+                question: "Which practice is most likely to enhance test-retest reliability?",
+                options: ["A) Allowing students to retake the same test immediately", "B) Ensuring no significant learning occurs between test administrations", "C) Using different scorers for each testing session", "D) Changing the test format slightly for the second administration"],
+                correct: "B",
+                explanation: "Test-retest reliability measures stability over time. If external factors like learning or practice are minimized, score differences are more likely to reflect true measurement error rather than actual changes in ability."
+            },
+            {
+                question: "Why is scorer reliability generally lower in interviews and composition tasks?",
+                options: ["A) Because test-takers tend to underperform in speaking and writing", "B) Because these tasks require memorization rather than reasoning", "C) Because they are usually timed more strictly", "D) Because such tasks involve subjective judgment by scorers"],
+                correct: "D",
+                explanation: "We did not make the assumption of perfectly consistent scoring… in interviews and compositions, perfect consistency is not expected. (Hughes, 2003, p. 43)"
+            },
+            {
+                question: "What does the “standard error of measurement” help to determine?",
+                options: ["A) The exact score a candidate will get in their next test", "B) The reliability of the test across different subjects", "C) The range within which a candidate’s true score likely falls", "D) The average score of all test-takers"],
+                correct: "C",
+                explanation: "While the reliability coefficient allows us to compare reliability... it is possible to estimate how far a person’s actual score is from their ‘true score’ using the standard error of measurement. (Hughes, 2003, p. 40)"
+            },
+            {
+                question: "“Direct testing implies the testing of performance skills, with texts and tasks as authentic as possible. If we test directly the skills that we are interested in fostering, then practice for the test represents practice in those skills. If we want people to learn to write compositions, we should get them to write compositions in the test.” According to the information, how can a teacher ensure beneficial backwash for the reading section of a test?",
+                options: ["A) Using unfamiliar and challenging texts that have not been previously studied in class.", "B) Including a post-reading activity related to the content of the authentic reading passage.", "C) Include a vocabulary matching section after the reading passage.", "D) Giving limited time for reading to challenge students during the exam."],
+                correct: "B",
+                explanation: "Other answers indicate situations where the reading passage is not the main learning objective or the skill the teacher wants to assess. (Hughes, 2003, p. 54)"
+            },
+            {
+                question: "Which of the following is not a helpful strategy for achieving beneficial backwash?",
+                options: ["A) Ensure the test is known and understood by students and teachers.", "B) Make testing criterion-referenced.", "C) Sample widely and unpredictably.", "D) Test what is easiest to test rather than what is most important."],
+                correct: "D",
+                explanation: "“There is a tendency to test what is easiest to test rather than what is most important to test. Reasons advanced for not testing, particularly abilities, may take many forms. It is often said, for instance, that sufficiently high reliability cannot be obtained when a form of testing requires subjective scoring. This is simply not the case…” (Hughes, 2003, p. 53)"
+            },
+            {
+                question: "What is one recommended way to reduce the negative effects of backwash in language testing?",
+                options: ["A) Applying criterion-referenced testing where possible", "B) Using only indirect testing methods like grammar quizzes", "C) Limiting the test to a narrow range of predictable tasks", "D) Avoiding the testing of productive skills such as speaking and writing"],
+                correct: "A",
+                explanation: "Criterion-referenced testing helps clarify learning goals and motivates students by showing them exactly what they need to accomplish."
+            },
+            {
+                question: "What does 'direct testing' mainly involve in language assessment?",
+                options: ["A) Checking understanding with multiple-choice reading questions", "B) Letting peers and teachers give scores based on impressions", "C) Testing only grammar and vocabulary from the textbook", "D) Asking students to perform the actual language skill, like speaking or writing"],
+                correct: "D",
+                explanation: "Direct testing requires students to use the exact skill being assessed, such as writing an essay or speaking in a conversation. It’s closer to how language is used in real life."
+            },
+            {
+                question: "What should tests avoid to promote beneficial backwash?",
+                options: ["A) Clear objectives", "B) Highly unpredictable content", "C) Direct testing methods", "D) Student involvement"],
+                correct: "B",
+                explanation: "Highly unpredictable content because Hughes (2003) mentions that if test content is too unpredictable, it may not encourage the desired teaching and learning outcomes (p. 54)."
+            },
+            {
+                question: "What is a potential challenge in achieving beneficial backwash?",
+                options: ["A) Reduced teacher workload", "B) The need for more elaborate test design", "C) Increased student motivation", "D) Less focus on objectives"],
+                correct: "B",
+                explanation: "The need for more elaborate test design because Hughes (2003) mentions that achieving beneficial backwash may require more elaborate tests, which can be costly (p. 56)."
+            },
+            {
+                question: "Which of the following should be done when testing the ability whose development you want to encourage?",
+                options: ["A) Use complementary skills together to reinforce each other", "B) Test what is easiest to test", "C) Prioritize what is most important to test", "D) Make time and cost a priority during testing"],
+                correct: "C",
+                explanation: "‘…if you want to encourage oral ability, then test oral ability…There is a tendency to test what is easiest to test rather than what is most important to test’ (Hughes, 2003, p. 53)."
+            },
+            {
+                question: "Which of the following is the most effective way to achieve beneficial backwash in language testing?",
+                options: ["A) Using only multiple-choice items in tests", "B) Designing tests that target students’ weakest skills", "C) Designing tests that reflect the language skills we want students to develop", "D) Creating tests that are quick and easy for teachers to grade"],
+                correct: "C",
+                explanation: "According to Hughes, the most effective way to achieve beneficial backwash in language testing is to design tests that reflect the language skills we want students to develop. Option A is the negative backwash in language teaching since positive backwash requires variety in testing. For option B, focusing tests solely on students' weakest skills does not necessarily lead to beneficial backwash. Lastly, option D is incorrect because the focus should be on students' learning, not teachers' testing skills."
+            },
+            {
+                question: "Which one is not related with the criterion referenced test?",
+                options: ["A) Students have a clear picture of what they have to achieve.", "B) If students perform the tasks at the criterial level, they would be successful on the test.", "C) It has been the basis of some GCSE examinations in Britain.", "D) Comparing a student's score to the average score of a group."],
+                correct: "D",
+                explanation: "Option D is not related to criterion-referenced tests. Students know that if they do perform the tasks at the criterial level, then they will be successful on the test, regardless of how other students perform. (Hughes, p. 55)"
+            },
+            {
+                question: "Which of the following practices is most likely to provide beneficial backwash in language testing?",
+                options: ["A) Limiting the test to only one or two familiar task types", "B) Using a wide and unpredictable sample of tasks from the specifications", "C) Giving students advance notice of exact test questions", "D) Focusing only on grammar and vocabulary drills"],
+                correct: "B",
+                explanation: "If the sample is taken from a restricted area of the specifications, then the backwash effect will tend to be felt only in that area. (Hughes, p.54)"
+            },
+            {
+                question: "What is one key benefit of using criterion-referenced tests?",
+                options: ["A) They eliminate the need for any teacher preparation", "B) They allow students to compete against each other for top scores", "C) They motivate students by showing clear performance standards", "D) They focus testing only on grammar and vocabulary"],
+                correct: "C",
+                explanation: "Criterion-referenced tests help students understand what they need to do to succeed by providing clear performance targets. This clarity can increase motivation and reduce anxiety compared to norm-referenced tests. (Hughes, p.55)"
+            },
+            {
+                question: "Which of the following strategies best promotes beneficial backwash?",
+                options: ["A) Using norm-referenced testing to compare students' performance", "B) Designing tests that require memorization of content", "C) Making test tasks as authentic and direct as possible", "D) Giving minimal guidance to teachers to encourage independence"],
+                correct: "C",
+                explanation: "It is emphasized that the use of direct testing with authentic tasks as a way to promote beneficial backwash. This encourages students to practice the real-life skills that the test aims to measure, rather than just learning test-taking strategies or rote content. (Hughes, p.54)"
+            },
+            {
+                question: "Why is it important to try out test items on native speakers before testing non-native speakers?",
+                options: ["A) To check the overall reliability and validity of the test", "B) To make sure the items are suitable for language learners", "C) To find and fix any problems with the items before the main trial", "D) To create the final scoring guide for open-ended questions"],
+                correct: "C",
+                explanation: "Hughes emphasizes the importance of trialing items informally on native speakers to detect and modify any problematic items before testing the non-speaker group. (p. 64-65)"
+            },
+            {
+                question: "What is the significance of writing test specifications before creating test items?",
+                options: ["A) To make sure the test matches its purpose and content", "B) To decide how long the test should be", "C) To make the test easier for students", "D) To see how many students will pass"],
+                correct: "A",
+                explanation: "Writing complete test specifications is crucial as it ensures that the test aligns with its intended purpose and content. (p.59-60)"
+            },
+            {
+                question: "Which one would be least suitable for the development of a placement test?",
+                options: ["A) “She ____ with her friends at the mall.” (gap-fill with “met”)", "B) A brief dialogue with missing function words", "C) A 600-word essay on “Your summer holiday”", "D) “Do not ___ to take your umbrella, it is raining.” (gap-fill with “forget”)"],
+                correct: "C",
+                explanation: "Writing essays are time consuming and impractical for rapid placement process."
+            },
+            {
+                question: "What is the main purpose of the “Stating the Problem” stage in test development?",
+                options: ["A) To design rubrics to score for evaluators", "B) To select specific passages for reading comprehension sections", "C) To clarify the test’s purpose, scope, and limitations", "D) To design the visual layout of test booklets"],
+                correct: "C",
+                explanation: "This stage defines the test’s objectives (e.g. proficiency, placement), abilities, and practical constraints."
+            },
+            {
+                question: "According to Hughes, which of the following is the first essential step in the test construction process?",
+                options: ["A) Writing and moderating test items", "B) Making a full and clear statement of the testing ‘problem’", "C) Trialling the test on non-native speakers", "D) Calibrating scoring scales"],
+                correct: "B",
+                explanation: "The text states: “Make a full and clear statement of the testing ‘problem’” as the very first recommended procedure in test construction. This is emphasized as the essential first step before anything else can be done. (Hughes p59)"
+            },
+            {
+                question: "Which of the following statements best captures a critical but often overlooked reason why individual item writers may struggle to detect faults in their own test items?",
+                options: ["A) They tend to prioritize creativity over test reliability, which leads to invalid constructs.", "B) Their familiarity with language rules often blinds them to practical test constraints.", "C) They lack sufficient training in psychometric item analysis methods.", "D) Their personal investment in the items can hinder objective judgment about their quality."],
+                correct: "D",
+                explanation: "'This difficulty can be seen most clearly at the stage of item writing, when faults in an item which are obvious to others are often invisible to the person who wrote the item. Writing items is a creative process, and we tend to think of our items as minor works of art or even, it sometimes seems, our babies. We do not find it easy to admit that our baby is not as beautiful as we had thought.' (Hughes p58)"
+            },
+            {
+                question: "What is the main reason for defining clear test specifications during the test development process?",
+                options: ["A) To ensure all students pass the test", "B) To save time during scoring", "C) To maintain consistency and validity across test versions", "D) To make the test look more professional"],
+                correct: "C",
+                explanation: "To maintain consistency and validity across test versions because Hughes (2003, p.58) emphasizes that well-written specifications ensure that tests are reliable and aligned with the test's purpose."
+            },
+            {
+                question: "Which of the following best describes the purpose of reviewing and editing test items during the development process?",
+                options: ["A) To make the test longer and more detailed", "B) To ensure the test is difficult enough for advanced learners", "C) To check the clarity, accuracy, and fairness of each item", "D) To match the test items with students’ textbook exercises"],
+                correct: "C",
+                explanation: "To check the clarity, accuracy, and fairness of each item because Hughes (2003, p.64) points out that reviewing and editing are essential for eliminating ambiguity and ensuring the test measures what it is supposed to."
+            },
+            {
+                question: "Before starting to design a language test, what is the most important thing to establish first?",
+                options: ["A) How the test will be scored", "B) The exact timing and number of items", "C) What the test is meant to assess and under what conditions", "D) The software or tools needed to deliver the test"],
+                correct: "C",
+                explanation: "Correct answer is C because the very first step in test development is to make a clear and full statement of the testing problem. This includes defining the purpose of the test, the skills to be tested, the test-taker group, and any constraints like time or resources. It lays the foundation for every other stage. (Hughes, 2003, p. 58–59)"
+            },
+            {
+                question: "Why is it important for test items to be reviewed by people other than the original writer before finalizing the test?",
+                options: ["A) To make sure the items are not too easy for advanced learners", "B) To catch any unclear wording or bias that the writer may have missed", "C) To reduce the number of items to match the test length", "D) To speed up the test construction process by involving more people"],
+                correct: "B",
+                explanation: "Correct answer is B because involving other colleagues in reviewing the test items — a process called moderation — helps identify weaknesses, ambiguities, or inconsistencies in the items that the original writer may not notice. This improves clarity and ensures better alignment with the test’s objectives. (Hughes, 2003, p. 63)"
+            },
+            {
+                question: "According to Hughes (2003), what must be determined before test items can be written in the test development process?",
+                options: ["A) The design of test tasks", "B) The timing of each section", "C) The test specifications", "D) The marking scheme"],
+                correct: "C",
+                explanation: "“The test specifications” because before constructing any test items, test developers must establish a clear blueprint that outlines what to test, how to test, and how to structure the tasks and scoring. (Hughes, 2003, p. 59–60)"
+            },
+            {
+                question: "In Hughes’ model of test development, what is the main role of the test specification stage?",
+                options: ["A) To analyze student performance after the test", "B) To construct test items and select test format", "C) To determine test scoring criteria", "D) To describe the structure, content, and procedures of the test"],
+                correct: "D",
+                explanation: "“To describe the structure, content, and procedures of the test” because test specifications serve as a blueprint that guides the construction of reliable and valid test items. (Hughes, 2003, p. 59-60)"
+            },
+            {
+                question: "Which statement best reflects a key reason why an item might need to be rewritten during the test development process?",
+                options: ["A) The item uses vocabulary that is too advanced for the test takers’ expected level.", "B) The item cannot be answered without prior background knowledge.", "C) The item is likely to produce multiple valid responses due to potential misinterpretation.", "D) The item lacks a clearly visible question format.", "E) The item is too easy and does not challenge high-performing students."],
+                correct: "C",
+                explanation: "The text emphasizes that even if there is no misinterpretation, test takers might find responses that are different but equally valid, which signals the item may need to be rewritten. This reflects the complexity of writing precise and unambiguous test items."
+            },
+            {
+                question: "Which of the following would not typically be included in a handbook designed for test takers, users, or staff?",
+                options: ["A) A breakdown of how the test was constructed and validated", "B) Guidelines for interpreting the results of the test", "C) Suggestions for developing new scoring rubrics for future assessments", "D) Training materials aimed at interviewers or raters", "E) Practical advice on how to prepare for taking the test"],
+                correct: "C",
+                explanation: "The text lists several components that handbooks may contain, such as development history, score interpretation, and training materials. However, it does not mention including suggestions for creating new scoring rubrics, making C the correct choice."
+            },
+            {
+                question: "Based on Hughes (2003), which of the following best explains why moderation is a crucial stage in the test item development process?",
+                options: ["A) It guarantees that each test item aligns with the most testable content areas to maximize student performance.", "B) It allows for the systematic rejection or revision of items that fail to meet validity and clarity standards through collaborative review.", "C) It provides an opportunity for item writers to gather data on how test-takers interpret multiple-choice stems during administration.", "D) It ensures that test items are varied in format and include both objective and subjective tasks to increase reliability."],
+                correct: "B",
+                explanation: "Hughes (2003) clearly outlines the purpose of moderation in item development. He states: “Moderation is the scrutiny of proposed items by at least two colleagues, neither of whom is the author... Their task is to try to find weaknesses in the items and, where possible, remedy them. Where successful modification is not possible, they may reject the item.”(P.63) From this quote, we can conclude that moderation: -Involves reviewing test items for validity and clarity. -Is conducted through collaborative review by at least two individuals who are not the original item writer. -Aims to either revise or reject items that do not meet established standards."
+            },
+            {
+                question: "Which of the following best reflects the purpose of informal trialling on native speakers?",
+                options: ["A) To test the cross-cultural applicability of the test.", "B) To determine whether items are appropriate for expert test designers.", "C) To simulate real-life testing conditions with high-stakes consequences.", "D) To observe how test items function with individuals similar to the target group."],
+                correct: "D",
+                explanation: "During informal trialling, native speakers who are similar to the intended test takers in terms of age, education, and background are used. This process helps to see how the test items perform under realistic conditions with people who closely resemble the target population. It ensures that the items work as intended before formal administration. “The native speaker should be similar to the people for whom the test is being developed…” (Hughes, 2003, P 64)"
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let selectedAnswer = null;
+
+        const questionNumber = document.getElementById('question-number');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options');
+        const feedbackContainer = document.getElementById('feedback');
+        const nextButton = document.getElementById('next-button');
+        const quizContainer = document.getElementById('quiz-container');
+        const completionMessage = document.getElementById('completion-message');
+
+        function loadQuestion() {
+            const question = questions[currentQuestionIndex];
+            questionNumber.textContent = `Question ${currentQuestionIndex + 1} of ${questions.length}`;
+            questionText.textContent = question.question;
+            optionsContainer.innerHTML = '';
+            feedbackContainer.classList.add('hidden');
+            nextButton.classList.add('hidden');
+            selectedAnswer = null;
+
+            question.options.forEach(option => {
+                const button = document.createElement('button');
+                button.textContent = option;
+                button.className = 'option block w-full text-left p-3 border rounded hover:bg-blue-50';
+                button.addEventListener('click', () => selectAnswer(option));
+                optionsContainer.appendChild(button);
+		
+            });
+		backButton.classList.toggle('hidden', currentQuestionIndex === 0);
+
+        }
+
+        function selectAnswer(option) {
+    if (selectedAnswer) return; // Prevent multiple selections
+    selectedAnswer = option;
+    const question = questions[currentQuestionIndex];
+    const isCorrect = option.charAt(0).toLowerCase() === question.correct.toLowerCase();
+    feedbackContainer.innerHTML = `
+        <p class="font-semibold ${isCorrect ? 'text-green-600' : 'text-red-600'}">
+            ${isCorrect ? 'Correct!' : 'Incorrect.'}
+        </p>
+        <p>${question.explanation}</p>
+    `;
+    feedbackContainer.classList.remove('hidden');
+    nextButton.classList.remove('hidden');
+
+    // Highlight selected and correct options
+    const buttons = optionsContainer.getElementsByTagName('button');
+    for (let button of buttons) {
+        const isButtonCorrect = button.textContent.trim().toLowerCase().startsWith(question.correct.toLowerCase());
+        if (button.textContent === option) {
+            button.classList.add(isCorrect ? 'correct' : 'incorrect');
+        }
+        if (!isCorrect && isButtonCorrect) {
+            button.classList.add('correct');
+        }
+        button.disabled = true; // Disable all buttons after selection
+    }
+}
+
+
+        nextButton.addEventListener('click', () => {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                loadQuestion();
+            } else {
+                quizContainer.classList.add('hidden');
+                completionMessage.classList.remove('hidden');
+            }
+        });
+const backButton = document.getElementById('back-button');
+
+backButton.addEventListener('click', () => {
+    if (currentQuestionIndex > 0) {
+        currentQuestionIndex--;
+        loadQuestion();
+    }
+});
+
+
+        loadQuestion();
+    </script>
+</body>
+</html>
