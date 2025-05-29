@@ -69,6 +69,10 @@
             <div id="options" class="space-y-2"></div>
             <div id="feedback" class="mt-4 hidden"></div>
             <button id="next-button" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded hidden hover:bg-blue-600">Next Question</button>
+<button id="next-button" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded hidden hover:bg-blue-600">Next Question</button>
+<button id="back-button" class="mt-2 bg-gray-500 text-white px-4 py-2 rounded hidden hover:bg-gray-600">Go Back</button>
+
+
         </div>
         <div id="completion-message" class="hidden text-center">
             <h2 class="text-xl font-bold mb-4">Quiz Completed!</h2>
@@ -568,7 +572,10 @@
                 button.className = 'option block w-full text-left p-3 border rounded hover:bg-blue-50';
                 button.addEventListener('click', () => selectAnswer(option));
                 optionsContainer.appendChild(button);
+		
             });
+		backButton.classList.toggle('hidden', currentQuestionIndex === 0);
+
         }
 
         function selectAnswer(option) {
@@ -609,6 +616,15 @@
                 completionMessage.classList.remove('hidden');
             }
         });
+const backButton = document.getElementById('back-button');
+
+backButton.addEventListener('click', () => {
+    if (currentQuestionIndex > 0) {
+        currentQuestionIndex--;
+        loadQuestion();
+    }
+});
+
 
         loadQuestion();
     </script>
