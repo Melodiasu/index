@@ -572,28 +572,33 @@
         }
 
         function selectAnswer(option) {
-            if (selectedAnswer) return; // Prevent multiple selections
-            selectedAnswer = option;
-            const question = questions[currentQuestionIndex];
-            const isCorrect = option.charAt(0).toLowerCase() === question.correct.toLowerCase();
-            feedbackContainer.innerHTML = `
-                <p class="font-semibold ${isCorrect ? 'text-green-600' : 'text-red-600'}">
-                    ${isCorrect ? 'Correct!' : 'Incorrect.'}
-                </p>
-                <p>${question.explanation}</p>
-            `;
-            feedbackContainer.classList.remove('hidden');
-            nextButton.classList.remove('hidden');
+    if (selectedAnswer) return; // Prevent multiple selections
+    selectedAnswer = option;
+    const question = questions[currentQuestionIndex];
+    const isCorrect = option.charAt(0).toLowerCase() === question.correct.toLowerCase();
+    feedbackContainer.innerHTML = `
+        <p class="font-semibold ${isCorrect ? 'text-green-600' : 'text-red-600'}">
+            ${isCorrect ? 'Correct!' : 'Incorrect.'}
+        </p>
+        <p>${question.explanation}</p>
+    `;
+    feedbackContainer.classList.remove('hidden');
+    nextButton.classList.remove('hidden');
 
-            // Highlight selected option
-            const buttons = optionsContainer.getElementsByTagName('button');
-            for (let button of buttons) {
-                if (button.textContent === option) {
-                    button.classList.add(isCorrect ? 'correct' : 'incorrect');
-                }
-                button.disabled = true; // Disable all buttons after selection
-            }
+    // Highlight selected and correct options
+    const buttons = optionsContainer.getElementsByTagName('button');
+    for (let button of buttons) {
+        const isButtonCorrect = button.textContent.trim().toLowerCase().startsWith(question.correct.toLowerCase());
+        if (button.textContent === option) {
+            button.classList.add(isCorrect ? 'correct' : 'incorrect');
         }
+        if (!isCorrect && isButtonCorrect) {
+            button.classList.add('correct');
+        }
+        button.disabled = true; // Disable all buttons after selection
+    }
+}
+
 
         nextButton.addEventListener('click', () => {
             currentQuestionIndex++;
